@@ -1,0 +1,50 @@
+platform :ios, 9.0
+#use_frameworks!
+
+target 'BugtagsRN' do
+
+    pod 'Bugtags'
+    rn_path = '../node_modules/react-native'
+
+    pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+    pod 'React', path: rn_path, subspecs: [
+    'Core',
+    'RCTActionSheet',
+    'RCTAnimation',
+    'RCTGeolocation',
+    'RCTImage',
+    'RCTLinkingIOS',
+    'RCTCameraRoll',
+    'RCTNetwork',
+    'RCTSettings',
+    'RCTText',
+    'RCTVibration',
+    'RCTWebSocket',
+    'RCTPushNotification'
+    ]
+
+end
+
+
+post_install do |installer|
+    installer.pods_project.targets.each do |target|
+        if target.name == 'yoga'
+            # Workaround: react-native v0.52 bug issue #17274
+            # node_modules/react-native/ReactCommon/yoga/yoga/YGNodePrint.cpp:208:46: Implicit conversion loses integer
+            # precision: 'size_type' (aka 'unsigned long') to 'const uint32_t' (aka 'const unsigned int')
+            # https://github.com/facebook/react-native/issues/17274#issuecomment-356363557
+            target.build_configurations.each do |config|
+                config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+                config.build_settings['GCC_WARN_64_TO_32_BIT_CONVERSION'] = 'NO'
+            end
+        end
+        if target.name == 'react-native-google-maps'
+            target.build_configurations.each do |config|
+                config.build_settings['CLANG_ENABLE_MODULES'] = 'No'
+            end
+        end
+        if target.name == "React"
+            target.remove_from_project
+        end
+    end
+end
